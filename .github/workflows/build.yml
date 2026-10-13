@@ -1,58 +1,61 @@
 name: Build DARKSTREAK APK
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "main.py"
-      - "buildozer.spec"
-      - ".github/workflows/build.yml"
+workflow_dispatch:
+push:
+paths:
+- "main.py"
+- "buildozer.spec"
+- ".github/workflows/build.yml"
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+build:
+runs-on: ubuntu-22.04
+env:
+P4A_RELEASE_KEYSTORE: ""
+PYTHONUNBUFFERED: "1"
 
-    steps:
-      - name: Get source code
-        uses: actions/checkout@v4
+steps:
+  - name: Get source code
+    uses: actions/checkout@v4
 
-      - name: Install build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            git zip unzip openjdk-17-jdk \
-            python3-pip python3-venv \
-            autoconf libtool pkg-config \
-            zlib1g-dev libncurses-dev \
-            libffi-dev libssl-dev libltdl-dev cmake
+  - name: Set up Java
+    uses: actions/setup-java@v5
+    with:
+      distribution: temurin
+      java-version: "17"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+  - name: Set up Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: "3.11"
 
-      - name: Install Buildozer
-        run: |
-          python -m pip install --user --upgrade pip
-          python -m pip install --user buildozer cython==0.29.36
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+  - name: Install system dependencies
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y \
+        git zip unzip autoconf libtool pkg-config \
+        zlib1g-dev libncurses-dev libffi-dev \
+        libssl-dev libltdl-dev cmake \
+        build-essential automake autopoint gettext
 
-      
-      - name: Check Python version
-        run: |
-          python --version
-          python -m pip --version
-          buildozer --version
+  - name: Install Buildozer
+    run: |
+      python -m pip install --upgrade pip
+      python -m pip install buildozer
 
-      - name: Build APK
-        run: yes | buildozer -v android debug
-        
+  - name: Check setup
+    run: |
+      python --version
+      java -version
+      buildozer --version
 
-      - name: Save APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: darkstreak-apk
-          path: bin/*.apk
-          if-no-files-found: error
+  - name: Build APK
+    run: buildozer -v android debug
 
-          
+  - name: Save APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: darkstreak-apk
+      path: bin/*.apk
+      if-no-files-found: error
