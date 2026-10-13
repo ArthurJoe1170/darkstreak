@@ -1,6 +1,6 @@
 name: Build DARKSTREAK APK
 
-on:
+"on":
 workflow_dispatch:
 push:
 paths:
