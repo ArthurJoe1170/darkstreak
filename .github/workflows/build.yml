@@ -37,8 +37,16 @@ jobs:
           python -m pip install --user buildozer cython==0.29.36
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Accept Android SDK licenses
-        run: yes | buildozer android debug
+      
+      - name: Check Python version
+        run: |
+          python --version
+          python -m pip --version
+          buildozer --version
+
+      - name: Build APK
+        run: yes | buildozer -v android debug
+        
 
       - name: Save APK
         uses: actions/upload-artifact@v4
